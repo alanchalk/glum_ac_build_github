@@ -436,7 +436,7 @@ class GeneralizedLinearRegressorCV(GeneralizedLinearRegressorBase):
         clusters: Optional[np.ndarray] = None,
         context: Optional[Union[int, Mapping[str, Any]]] = None,
     ):
-        r"""
+        """
         Choose the best model along a 'regularization path' by cross-validation.
 
         Parameters
@@ -543,7 +543,7 @@ class GeneralizedLinearRegressorCV(GeneralizedLinearRegressorBase):
             _stype = ["csc"]
         else:
             _stype = ["csc", "csr"]
-
+        
         def _fit_path(
             self,
             train_idx,
@@ -571,6 +571,8 @@ class GeneralizedLinearRegressorCV(GeneralizedLinearRegressorBase):
                 y[test_idx],
                 sample_weight[test_idx],
             )
+            # test weights need to sum to 1 too, else deviance is not properly scaled
+            w_test /= w_test.sum()
 
             if offset is not None:
                 offset_train = offset[train_idx]
@@ -592,7 +594,11 @@ class GeneralizedLinearRegressorCV(GeneralizedLinearRegressorBase):
 
             P1_no_alpha = setup_p1(P1, X, X.dtype, 1, l1)
             P2_no_alpha = setup_p2(P2, X, _stype, X.dtype, 1, l1)
-
+            # AC 6/6/2025:
+            if not is_pos_semidef(P2_no_alpha):
+                print("Line 599 pre standardise: P2 is not positive semidefinite. ")
+            else:
+                print("Line 601 pre standardise: P2 is positive semidefinite. ")
             (
                 x_train,
                 self.col_means_,
@@ -613,7 +619,11 @@ class GeneralizedLinearRegressorCV(GeneralizedLinearRegressorBase):
                 P1_no_alpha,
                 P2_no_alpha,
             )
-
+            # AC 6/6/2025:
+            if not is_pos_semidef(P2_no_alpha):
+                print("Line 623 post standardise: P2 is not positive semidefinite. ")
+            else:
+                print("Line 626 post standardise: P2 is positive semidefinite. ")
             coef = self._get_start_coef(
                 x_train,
                 y_train,
@@ -667,8 +677,8 @@ class GeneralizedLinearRegressorCV(GeneralizedLinearRegressorBase):
                 )
                 deviance_path_ = [_get_deviance(_coef) for _coef in coef_path_]
 
-            return intercept_path_, coef_path_, deviance_path_
-
+            return intercept_path_, coef_path_, deviance_path_, train_idx
+        
         jobs = (
             joblib.delayed(_fit_path)(
                 self,
@@ -705,6 +715,8 @@ class GeneralizedLinearRegressorCV(GeneralizedLinearRegressorBase):
             [elmt[2] for elmt in paths_data],
             (cv.get_n_splits(), len(l1_ratio), len(alphas[0])),
         )
+
+        self.train_indices_ = [elmt[3] for elmt in paths_data]
 
         avg_deviance = self.deviance_path_.mean(axis=0)  # type: ignore
 
