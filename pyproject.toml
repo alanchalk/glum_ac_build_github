@@ -1,3 +1,6 @@
+[project]
+name = "glum-ac"
+
 [build-system]
 requires = [
   'setuptools',
