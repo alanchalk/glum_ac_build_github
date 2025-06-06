@@ -54,7 +54,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: test_release
-      url: https://test.pypi.org/p/glum
+      url: https://test.pypi.org/p/glum-ac
     permissions:
       id-token: write
     steps:
@@ -65,19 +65,3 @@ jobs:
       - uses: pypa/gh-action-pypi-publish@76f52bc884231f62b9a034ebfe128415bbaabdfc # v1.12.4
         with:
           repository-url: https://test.pypi.org/legacy/
-
-  upload_pypi:
-    if: github.event_name == 'release' && github.event.action == 'published'
-    needs: [build_wheels, build_sdist, upload_testpypi]
-    runs-on: ubuntu-latest
-    environment:
-      name: release
-      url: https://pypi.org/p/glum
-    permissions:
-      id-token: write
-    steps:
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
-        with:
-          path: dist
-          merge-multiple: true
-      - uses: pypa/gh-action-pypi-publish@76f52bc884231f62b9a034ebfe128415bbaabdfc # v1.12.4
