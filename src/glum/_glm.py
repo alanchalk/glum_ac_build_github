@@ -423,6 +423,9 @@ class GeneralizedLinearRegressorBase(skl.base.RegressorMixin, skl.base.BaseEstim
         )
         return _make_grid(alpha_max)
 
+    # AC 12 June 2025: expose _get_alpha_path so that can experiment with fewer alphas vs speed
+    get_alpha_path = _get_alpha_path
+
     def _solve(
         self,
         X: Union[tm.MatrixBase, tm.StandardizedMatrix],
