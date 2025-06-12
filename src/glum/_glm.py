@@ -341,6 +341,9 @@ class GeneralizedLinearRegressorBase(skl.base.RegressorMixin, skl.base.BaseEstim
                     f"{self._family_instance.__class__.__name__}."
                 )
 
+    # AC 12 June 2025: Expose _set_up_for_fit
+    set_up_for_fit = _set_up_for_fit
+
     def _get_alpha_path(
         self,
         P1_no_alpha: np.ndarray,
